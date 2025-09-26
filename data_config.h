@@ -21,9 +21,9 @@ int  EdustThreshold2 = 0;             // ngưỡng bụi 2
 
 int  ErainTimeSample = 5;             // thời gian lấy mẫu cảm biến mưa
 int  EwindTimeSample = 5;             // thời gian lấy mẫu cảm biến gió
-int  ErainSFunnel       = 9498;       // Đường kính phễu hứng nước mưa
-int  ErainAmountOfWater = 6;          // Lượng nước mưa vừa đủ để phễu đo lật
-int  EwindDAnemometer   = 208;        // Đường kính trục cánh quạt quay hứng gió
+int  ErainSFunnel       = 0;       // Đường kính phễu hứng nước mưa
+int  ErainAmountOfWater = 0;          // Lượng nước mưa vừa đủ để phễu đo lật
+int  EwindDAnemometer   = 0;        // Đường kính trục cánh quạt quay hứng gió
      
 String snTemp[4] = {"", "Nhiệt độ thấp ","Nhiệt độ phù hợp ","Nhiệt độ cao "};
 String snHumi[4] = {"", "Độ ẩm thấp ","Độ ẩm phù hợp ","Độ ẩm cao "};
