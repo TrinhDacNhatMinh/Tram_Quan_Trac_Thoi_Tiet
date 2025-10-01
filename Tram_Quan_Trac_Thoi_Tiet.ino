@@ -446,7 +446,7 @@ void TaskOLEDDisplay(void *pvParameters) {
           oled.clearDisplay();
           oled.setTextSize(1);
           oled.setCursor(0, 20);
-          oled.print("Bui min PM2.5: ");
+          oled.print("Bui min: ");
           oled.setTextSize(2);
           oled.setCursor(0, 32);
           oled.print(dustValue, 1);
@@ -477,7 +477,7 @@ void TaskOLEDDisplay(void *pvParameters) {
           oled.clearDisplay();
           oled.setTextSize(1);
           oled.setCursor(0, 0);
-          oled.print("Cam bien mua:");
+          oled.print("Luong mua:");
           oled.setTextSize(2);
           oled.setCursor(0, 12);
           if (rainValue >= 1000)
@@ -489,7 +489,7 @@ void TaskOLEDDisplay(void *pvParameters) {
 
           oled.setTextSize(1);
           oled.setCursor(0, 34);
-          oled.print("Cam bien gio: ");
+          oled.print("Toc do gio: ");
           oled.setTextSize(2);
           oled.setCursor(0, 46);
           oled.print(windValue, 1);
