@@ -150,7 +150,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 
                 <div class="container-2">
                     <input type="number" id="rainThreshold1" name="rainThreshold1" min="0" placeholder="Ngưỡng 1">
-                    <input type="number" id="rainThreshold2" name="rainThreshold 2" min="0" placeholder="Ngưỡng 2">
+                    <input type="number" id="rainThreshold2" name="rainThreshold2" min="0" placeholder="Ngưỡng 2">
 
                 </div>
 

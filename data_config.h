@@ -8,22 +8,22 @@ String  Essid   = "";                 // EEPROM tên wifi nhà bạn
 String  Epass   = "";                 // EEPROM mật khẩu wifi nhà bạn
 String  Etoken  = "";                 // EEPROM mã token blynk
 
-int  EtempThreshold1 = 0;             // ngưỡng nhiệt độ 1   
-int  EtempThreshold2 = 0;             // ngưỡng nhiệt độ 2 
-int  EhumiThreshold1 = 0;             // ngưỡng độ ẩm 1
-int  EhumiThreshold2 = 0;             // ngưỡng độ ẩm 2
-int  ErainThreshold1 = 0;             // ngưỡng mưa 1  
-int  ErainThreshold2 = 0;             // ngưỡng mưa 2
-int  EwindThreshold1 = 0;             // ngưỡng gió 1
-int  EwindThreshold2 = 0;             // ngưỡng gió 2
-int  EdustThreshold1 = 0;             // ngưỡng bụi 1
-int  EdustThreshold2 = 0;             // ngưỡng bụi 2
+int  EtempThreshold1 = 20;             // ngưỡng nhiệt độ 1   
+int  EtempThreshold2 = 35;             // ngưỡng nhiệt độ 2 
+int  EhumiThreshold1 = 10;             // ngưỡng độ ẩm 1
+int  EhumiThreshold2 = 90;             // ngưỡng độ ẩm 2
+int  ErainThreshold1 = 2;             // ngưỡng mưa 1  
+int  ErainThreshold2 = 10;             // ngưỡng mưa 2
+int  EwindThreshold1 = 1;             // ngưỡng gió 1
+int  EwindThreshold2 = 5;             // ngưỡng gió 2
+int  EdustThreshold1 = 1;             // ngưỡng bụi 1
+int  EdustThreshold2 = 75;             // ngưỡng bụi 2
 
 int  ErainTimeSample = 5;             // thời gian lấy mẫu cảm biến mưa
 int  EwindTimeSample = 5;             // thời gian lấy mẫu cảm biến gió
-int  ErainSFunnel       = 0;       // Đường kính phễu hứng nước mưa
-int  ErainAmountOfWater = 0;          // Lượng nước mưa vừa đủ để phễu đo lật
-int  EwindDAnemometer   = 0;        // Đường kính trục cánh quạt quay hứng gió
+int  ErainSFunnel       = 5704;       // S phễu hứng nước mưa
+int  ErainAmountOfWater = 6;          // Lượng nước mưa vừa đủ để phễu đo lật
+int  EwindDAnemometer   = 120 ;        // Đường kính trục cánh quạt quay hứng gió
      
 String snTemp[4] = {"", "Nhiệt độ thấp ","Nhiệt độ phù hợp ","Nhiệt độ cao "};
 String snHumi[4] = {"", "Độ ẩm thấp ","Độ ẩm phù hợp ","Độ ẩm cao "};

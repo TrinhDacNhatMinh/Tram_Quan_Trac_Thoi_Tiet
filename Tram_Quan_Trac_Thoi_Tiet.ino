@@ -129,7 +129,7 @@ int rainCountPulse = 0;   //  biến đếm xung cb mưa
 int R_Funnel = 0;         // đơn vị mm, đây là kích thước bán kính của phễu hứng nước mưa, cần tùy chỉnh theo đúng mô hình thực tế
 int V_AmountOfWater = 0;  // đơn vị ml, đây là lượng nước vừa đủ để bập bênh nước lật được, cần căn chỉnh theo thực tế
 int S_Funnel = 0;         // Diện tích mặc đón nước của phễu = pi*r^2
-float onePulseValue = 0;  // với 6ml rót vào ô chứa thì nước sẽ đổ (1 xung)=> tương đương với lượng mưa 0.63135mm, tham khảo cách tính ở đây https://smartsolutions4home.com/ss4h-rg-rain-gauge/
+float onePulseValue = 0;  // với 6ml rót vào ô chứa thì nước sẽ đổ (1 xung)=> tương đương với lượng mưa 0.63135mm
 uint32_t timeMillisRain = 0;
 uint32_t timeCalulateRain = 0;
 
@@ -438,7 +438,7 @@ void TaskOLEDDisplay(void *pvParameters) {
           delay(100);
         }
         if (enableShow == ENABLE)
-          screenOLED = SCREEN3;
+          screenOLED = SCREEN2;
         break;
 
       case SCREEN2:  // Hiển thị bụi
@@ -885,6 +885,8 @@ void getDataFromClient(AsyncWebServerRequest *request, uint8_t *data, size_t len
   if (myObject.hasOwnProperty("windDAnemometer"))
     EwindDAnemometer = (int)myObject["windDAnemometer"];
   writeEEPROM();
+
+  request->send(200, "application/json", "{\"status\":\"ok\"}");
 }
 
 //------------------------- Hàm in các giá trị cài đặt -------------------------
@@ -983,27 +985,12 @@ void TaskAutoWarning(void *pvParameters) {
 
 //--------------------- Send send Data value to Blynk every 2 seconds ----------
 void myTimer() {
-  // Gửi nhiệt độ & độ ẩm
-  Blynk.virtualWrite(V0, tempValue);
-  Blynk.virtualWrite(V1, humiValue);
-
-  // Gửi mưa
-  if (trigRainBlynk == 0) {
-    Blynk.virtualWrite(V2, rainValue);
-    trigRainBlynk = 0;
-  }
-
-  // Gửi gió
-  if (trigWindBlynk == 0) {
-    Blynk.virtualWrite(V3, windValue);
-    trigWindBlynk = 0;
-  }
-
-  // Gửi bụi (PM2.5)
-  Blynk.virtualWrite(V5, dustValue);  // ⚠️ nên dùng chân ảo khác (ví dụ V5) tránh trùng V2 với mưa
-
-  // Gửi trạng thái cảnh báo tự động
-  Blynk.virtualWrite(V4, autoWarning);
+  Blynk.virtualWrite(V0, tempValue);      // Nhiệt độ
+  Blynk.virtualWrite(V1, humiValue);      // Độ ẩm
+  Blynk.virtualWrite(V2, rainValue);      // Mưa
+  Blynk.virtualWrite(V3, windValue);      // Gió
+  Blynk.virtualWrite(V4, dustValue);      // Bụi
+  Blynk.virtualWrite(V5, autoWarning);    // Tự động cảnh báo
 }
 
 //--------- Read button from BLYNK and send notification back to Blynk ---------
@@ -1013,13 +1000,13 @@ BLYNK_WRITE(V3) {
   checkAirQuality = param.asInt();
   if (checkAirQuality == 1) {
     buzzerBeep(1);
-    check_data_and_send_to_blynk(tempValue, humiValue, rainValue, windValue, dustValue);  // thêm dustValue
+    check_data_and_send_to_blynk(tempValue, humiValue, rainValue, windValue, dustValue);
     screenOLED = SCREEN12;
   }
 }
 
 //------------------------ check autoWarning from BLYNK  -----------------------
-BLYNK_WRITE(V4) {
+BLYNK_WRITE(V5) {
   enableShow = DISABLE;
   autoWarning = param.asInt();
   buzzerBeep(1);
@@ -1181,7 +1168,7 @@ void button_press_short_callback(uint8_t button_id) {
       buzzerBeep(1);
       Serial.println("btDOWN press short");
       enableShow = DISABLE;
-      check_data_and_send_to_blynk(tempValue, humiValue, rainValue, windValue);
+      check_data_and_send_to_blynk(tempValue, humiValue, rainValue, windValue, dustValue);
       screenOLED = SCREEN12;
       break;
   }
