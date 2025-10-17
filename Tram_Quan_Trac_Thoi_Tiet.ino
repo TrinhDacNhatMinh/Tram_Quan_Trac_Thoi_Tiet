@@ -18,6 +18,9 @@ char BLYNK_AUTH_TOKEN[32] = "";
 #include <Arduino_JSON.h>
 #include "icon.h"
 
+bool alertActive = false;
+String alertMessages = "";
+
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
 
@@ -38,7 +41,7 @@ BlynkTimer timer;
 #define SCREEN_HEIGHT 64
 #define OLED_RESET -1
 Adafruit_SH1106G oled = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
- 
+
 #define NUMFLAKES 10
 #define XPOS 0
 #define YPOS 1
@@ -61,7 +64,8 @@ typedef enum {
   SCREEN10,
   SCREEN11,
   SCREEN12,
-  SCREEN13
+  SCREEN13,
+  SCREEN_ALERT
 } SCREEN;
 int screenOLED = SCREEN0;
 
@@ -384,6 +388,9 @@ int countSCREEN9 = 0;
 // Task hiển thị OLED
 void TaskOLEDDisplay(void *pvParameters) {
   while (1) {
+    if (alertActive) {
+      screenOLED = SCREEN_ALERT;  // chuyển sang màn hình cảnh báo
+    }
     switch (screenOLED) {
       case SCREEN0:  // Hiệu ứng khởi động
         for (int j = 0; j < 3; j++) {
@@ -437,8 +444,9 @@ void TaskOLEDDisplay(void *pvParameters) {
           oled.display();
           delay(100);
         }
-        if (enableShow == ENABLE)
-          screenOLED = SCREEN2;
+        if (enableShow == ENABLE) {
+          screenOLED = SCREEN2;  // chuyển sang màn hình tiếp theo
+        }
         break;
 
       case SCREEN2:  // Hiển thị bụi
@@ -713,14 +721,29 @@ void TaskOLEDDisplay(void *pvParameters) {
         screenOLED = SCREEN1;
         enableShow = ENABLE;
         break;
-      case SCREEN13:  // khoi dong lai
-        oled.clearDisplay();
-        oled.setTextSize(1);
-        oled.setCursor(0, 20);
-        oled.print("Khoi dong lai");
-        oled.setCursor(0, 32);
-        oled.print("Vui long doi ...");
-        oled.display();
+      case SCREEN_ALERT:
+        {
+          static unsigned long alertStart = 0;
+          if (alertStart == 0) {
+            alertStart = millis();  // đánh dấu thời gian bắt đầu hiển thị
+          }
+
+          oled.clearDisplay();
+          oled.setTextSize(1);
+          oled.setCursor(0, 0);
+          oled.println("CANH BAO");
+          oled.setTextSize(1);
+          oled.setCursor(0, 16);
+          oled.println(alertMessages);
+          oled.display();
+
+          // Kiểm tra thời gian hiển thị 3 giây
+          if (millis() - alertStart >= 3000) {
+            screenOLED = SCREEN1;  // quay về màn hình chính
+            alertStart = 0;        // reset biến
+            alertActive = false;   // nếu muốn tắt alert
+          }
+        }
         break;
       default:
         delay(500);
@@ -977,6 +1000,8 @@ void TaskAutoWarning(void *pvParameters) {
   delay(20000);
   while (1) {
     if (autoWarning == 1) {
+      checkThreshold(tempValue, humiValue, rainValue, windValue, dustValue);
+
       check_data_and_send_to_blynk(tempValue, humiValue, rainValue, windValue, dustValue);
     }
     delay(10000);
@@ -985,12 +1010,12 @@ void TaskAutoWarning(void *pvParameters) {
 
 //--------------------- Send send Data value to Blynk every 2 seconds ----------
 void myTimer() {
-  Blynk.virtualWrite(V0, tempValue);      // Nhiệt độ
-  Blynk.virtualWrite(V1, humiValue);      // Độ ẩm
-  Blynk.virtualWrite(V2, rainValue);      // Mưa
-  Blynk.virtualWrite(V3, windValue);      // Gió
-  Blynk.virtualWrite(V4, dustValue);      // Bụi
-  Blynk.virtualWrite(V5, autoWarning);    // Tự động cảnh báo
+  Blynk.virtualWrite(V0, tempValue);    // Nhiệt độ
+  Blynk.virtualWrite(V1, humiValue);    // Độ ẩm
+  Blynk.virtualWrite(V2, rainValue);    // Mưa
+  Blynk.virtualWrite(V3, windValue);    // Gió
+  Blynk.virtualWrite(V4, dustValue);    // Bụi
+  Blynk.virtualWrite(V5, autoWarning);  // Tự động cảnh báo
 }
 
 //--------- Read button from BLYNK and send notification back to Blynk ---------
@@ -1240,49 +1265,94 @@ void check_data_and_send_to_blynk(int temp, int humi, int rain, int wind, int du
   int humiIndex = 0;
   int dustIndex = 0;
 
-  if (dht11ReadOK == true) {
-    // ---- Nhiệt độ ----
-    if (temp < EtempThreshold1) tempIndex = 1;
-    else if (temp >= EtempThreshold1 && temp <= EtempThreshold2) tempIndex = 0;
-    else tempIndex = 3;
 
-    // ---- Độ ẩm ----
-    if (humi < EhumiThreshold1) humiIndex = 1;
-    else if (humi >= EhumiThreshold1 && humi <= EhumiThreshold2) humiIndex = 0;
-    else humiIndex = 3;
+  // ---- Nhiệt độ ----
+  if (temp < EtempThreshold1) {
+    tempIndex = 1;
+  } else if (temp >= EtempThreshold1 && temp <= EtempThreshold2) {
+    tempIndex = 2;
+  } else if (temp > EtempThreshold2) {
+    tempIndex = 3;
+  }
 
-    // ---- Mưa ----
-    if (rain == 0) rainIndex = 0;
-    else if (rain > 0 && rain <= ErainThreshold1) rainIndex = 2;
-    else if (rain > ErainThreshold1 && rain <= ErainThreshold2) rainIndex = 3;
-    else rainIndex = 4;
+  // ---- Độ ẩm ----
+  if (humi < EhumiThreshold1) {
+    humiIndex = 1;
+  } else if (humi >= EhumiThreshold1 && humi <= EhumiThreshold2) {
+    humiIndex = 2;
+  } else if (humi > EhumiThreshold2) {
+    humiIndex = 3;
+  }
 
-    // ---- Gió ----
-    if (wind == 0) windIndex = 0;
-    else if (wind > 0 && wind <= EwindThreshold1) windIndex = 0;
-    else if (wind >= EwindThreshold1 && wind <= EwindThreshold2) windIndex = 3;
-    else windIndex = 4;
+  // ---- Mưa ----
+  if (rain == 0) {
+    rainIndex = 1;
+  } else if (rain > 0 && rain < ErainThreshold1) {
+    rainIndex = 2;
+  } else if (rain >= ErainThreshold1 && rain <= ErainThreshold2) {
+    rainIndex = 3;
+  } else if (rain > ErainThreshold2) {
+    rainIndex = 4;
+  }
 
-    // ---- Bụi PM2.5 ----
-    if (dust < EdustThreshold1) dustIndex = 1;
-    else if (dust >= EdustThreshold1 && dust <= EdustThreshold2) dustIndex = 2;
-    else dustIndex = 3;
+  // ---- Gió ----
+  if (wind == 0) {
+    windIndex = 1;
+  } else if (wind > 0 && wind < EwindThreshold1) {
+    windIndex = 2;
+  } else if (wind >= EwindThreshold1 && wind <= EwindThreshold2) {
+    windIndex = 3;
+  } else if (wind > EwindThreshold2) {
+    windIndex = 4;
+  }
 
-    // ---- Ghép thông báo ----
-    if (tempIndex == 0 && humiIndex == 0 && rainIndex == 0 && windIndex == 0 && dustIndex == 0) {
-      notifications = "";
-    } else {
-      if (tempIndex != 0) notifications += snTemp[tempIndex] + String(temp) + "*C . ";
-      if (humiIndex != 0) notifications += snHumi[humiIndex] + String(humi) + "% . ";
-      if (rainIndex != 0) notifications += snRain[rainIndex] + String(rain) + "mm/h . ";
-      if (windIndex != 0) notifications += snWind[windIndex] + String(wind) + "m/s . ";
-      if (dustIndex != 0) notifications += snDust[dustIndex] + String(dust) + " ug/m3 . ";
+  // ---- Bụi PM2.5 ----
+  if (dust == 0) {
+    dustIndex = 1;
+  } else if (dust > 0 && dust < EdustThreshold1) {
+    dustIndex = 2;
+  } else if (dust >= EdustThreshold1 && dust <= EdustThreshold2) {
+    dustIndex = 3;
+  } else if (dust > EdustThreshold2) {
+    dustIndex = 4;
+  }
 
-      Blynk.logEvent("auto_warning", notifications);
+  // ---- Ghép thông báo ----
+  if (tempIndex == 0 && humiIndex == 0 && rainIndex == 0 && windIndex == 0 && dustIndex == 0) {
+    notifications = "";
+  } else {
+    if (tempIndex != 0) notifications += snTemp[tempIndex] + String(temp) + "*C . ";
+    if (humiIndex != 0) notifications += snHumi[humiIndex] + String(humi) + "% . ";
+    if (rainIndex != 0) notifications += snRain[rainIndex] + String(rain) + "mm/h . ";
+    if (windIndex != 0) notifications += snWind[windIndex] + String(wind) + "m/s . ";
+    if (dustIndex != 0) notifications += snDust[dustIndex] + String(dust) + " ug/m3 . ";
 
-      buzzerBeep(3);
-    }
+    Blynk.logEvent("auto_warning", notifications);
+
 
     Serial.println(notifications);
+  }
+}
+
+void checkThreshold(int temp, int humi, int rain, int wind, int dust) {
+  bool tempAlert = !(temp >= EtempThreshold1 && temp <= EtempThreshold2);
+  bool humiAlert = !(humi >= EhumiThreshold1 && humi <= EhumiThreshold2);
+  bool rainAlert = !(rain >= ErainThreshold1 && rain <= ErainThreshold2);
+  bool windAlert = !(wind >= EwindThreshold1 && wind <= EwindThreshold2);
+  bool dustAlert = !(dust >= EdustThreshold1 && dust <= EdustThreshold2);
+
+  alertActive = tempAlert || humiAlert || rainAlert || windAlert || dustAlert;
+
+  if (alertActive) {
+    alertMessages = "";
+    if (tempAlert) alertMessages += "Temp out of range\n";
+    if (humiAlert) alertMessages += "Humi out of range\n";
+    if (rainAlert) alertMessages += "Rain out of range\n";
+    if (windAlert) alertMessages += "Wind out of range\n";
+    if (dustAlert) alertMessages += "Dust out of range\n";
+
+    digitalWrite(BUZZER, HIGH);  // bật còi liên tục
+  } else {
+    digitalWrite(BUZZER, LOW);  // tắt còi nếu không cảnh báo
   }
 }
