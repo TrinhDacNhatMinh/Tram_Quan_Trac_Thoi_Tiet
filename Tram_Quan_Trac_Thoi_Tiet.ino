@@ -38,7 +38,7 @@ BlynkTimer timer;
 #define SCREEN_HEIGHT 64
 #define OLED_RESET -1
 Adafruit_SH1106G oled = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-
+ 
 #define NUMFLAKES 10
 #define XPOS 0
 #define YPOS 1
@@ -1279,6 +1279,8 @@ void check_data_and_send_to_blynk(int temp, int humi, int rain, int wind, int du
       if (dustIndex != 0) notifications += snDust[dustIndex] + String(dust) + " ug/m3 . ";
 
       Blynk.logEvent("auto_warning", notifications);
+
+      buzzerBeep(3);
     }
 
     Serial.println(notifications);
