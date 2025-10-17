@@ -725,7 +725,8 @@ void TaskOLEDDisplay(void *pvParameters) {
         {
           static unsigned long alertStart = 0;
           if (alertStart == 0) {
-            alertStart = millis();  // đánh dấu thời gian bắt đầu hiển thị
+            alertStart = millis();           // đánh dấu thời gian bắt đầu hiển thị
+            digitalWrite(BUZZER, HIGH);  // bật còi
           }
 
           oled.clearDisplay();
@@ -739,9 +740,10 @@ void TaskOLEDDisplay(void *pvParameters) {
 
           // Kiểm tra thời gian hiển thị 3 giây
           if (millis() - alertStart >= 3000) {
-            screenOLED = SCREEN1;  // quay về màn hình chính
-            alertStart = 0;        // reset biến
-            alertActive = false;   // nếu muốn tắt alert
+            screenOLED = SCREEN1;           // quay về màn hình chính
+            alertStart = 0;                 // reset biến
+            alertActive = false;            // tắt trạng thái alert
+            digitalWrite(BUZZER, LOW);  // tắt còi
           }
         }
         break;
@@ -1350,9 +1352,6 @@ void checkThreshold(int temp, int humi, int rain, int wind, int dust) {
     if (rainAlert) alertMessages += "Rain out of range\n";
     if (windAlert) alertMessages += "Wind out of range\n";
     if (dustAlert) alertMessages += "Dust out of range\n";
-
-    digitalWrite(BUZZER, HIGH);  // bật còi liên tục
   } else {
-    digitalWrite(BUZZER, LOW);  // tắt còi nếu không cảnh báo
   }
 }
