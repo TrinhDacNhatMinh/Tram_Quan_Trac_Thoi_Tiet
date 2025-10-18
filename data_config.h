@@ -9,18 +9,18 @@ String  Epass   = "";                 // EEPROM mật khẩu wifi nhà bạn
 String  Etoken  = "";                 // EEPROM mã token blynk
 
 int  EtempThreshold1 = 20;             // ngưỡng nhiệt độ 1   
-int  EtempThreshold2 = 35;             // ngưỡng nhiệt độ 2 
+int  EtempThreshold2 = 28;             // ngưỡng nhiệt độ 2 
 int  EhumiThreshold1 = 10;             // ngưỡng độ ẩm 1
-int  EhumiThreshold2 = 70;             // ngưỡng độ ẩm 2
-int  ErainThreshold1 = 2;             // ngưỡng mưa 1  
-int  ErainThreshold2 = 10;             // ngưỡng mưa 2
+int  EhumiThreshold2 = 80;             // ngưỡng độ ẩm 2
+int  ErainThreshold1 = 1;             // ngưỡng mưa 1  
+int  ErainThreshold2 = 50;             // ngưỡng mưa 2
 int  EwindThreshold1 = 1;             // ngưỡng gió 1
 int  EwindThreshold2 = 5;             // ngưỡng gió 2
 int  EdustThreshold1 = 1;             // ngưỡng bụi 1
 int  EdustThreshold2 = 75;             // ngưỡng bụi 2
 
-int  ErainTimeSample = 5;             // thời gian lấy mẫu cảm biến mưa
-int  EwindTimeSample = 5;             // thời gian lấy mẫu cảm biến gió
+int  ErainTimeSample = 1;             // thời gian lấy mẫu cảm biến mưa
+int  EwindTimeSample = 1;             // thời gian lấy mẫu cảm biến gió
 int  ErainSFunnel       = 5704;       // S phễu hứng nước mưa
 int  ErainAmountOfWater = 6;          // Lượng nước mưa vừa đủ để phễu đo lật
 int  EwindDAnemometer   = 120 ;        // Đường kính trục cánh quạt quay hứng gió

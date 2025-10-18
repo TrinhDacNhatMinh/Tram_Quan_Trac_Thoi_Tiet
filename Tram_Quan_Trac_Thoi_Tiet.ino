@@ -21,6 +21,13 @@ char BLYNK_AUTH_TOKEN[32] = "";
 bool alertActive = false;
 String alertMessages = "";
 
+bool tempAlert = false;
+bool humiAlert = false;
+bool rainAlert = false;
+bool windAlert = false;
+bool dustAlert = false;
+
+
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
 
@@ -388,9 +395,7 @@ int countSCREEN9 = 0;
 // Task hiển thị OLED
 void TaskOLEDDisplay(void *pvParameters) {
   while (1) {
-    if (alertActive) {
-      screenOLED = SCREEN_ALERT;  // chuyển sang màn hình cảnh báo
-    }
+    checkThreshold(tempValue, humiValue, rainValue, windValue, dustValue);
     switch (screenOLED) {
       case SCREEN0:  // Hiệu ứng khởi động
         for (int j = 0; j < 3; j++) {
@@ -525,8 +530,13 @@ void TaskOLEDDisplay(void *pvParameters) {
           oled.display();
           delay(100);
         }
-        if (enableShow == ENABLE)
-          screenOLED = SCREEN1;
+        if (alertActive) {
+          screenOLED = SCREEN_ALERT;  // chuyển sang màn hình cảnh báo
+        } else {
+          if (enableShow == ENABLE)
+            screenOLED = SCREEN1;
+        }
+
         break;
       case SCREEN4:  // Đang kết nối Wifi
         oled.clearDisplay();
@@ -725,7 +735,7 @@ void TaskOLEDDisplay(void *pvParameters) {
         {
           static unsigned long alertStart = 0;
           if (alertStart == 0) {
-            alertStart = millis();           // đánh dấu thời gian bắt đầu hiển thị
+            alertStart = millis();       // đánh dấu thời gian bắt đầu hiển thị
             digitalWrite(BUZZER, HIGH);  // bật còi
           }
 
@@ -740,9 +750,9 @@ void TaskOLEDDisplay(void *pvParameters) {
 
           // Kiểm tra thời gian hiển thị 3 giây
           if (millis() - alertStart >= 3000) {
-            screenOLED = SCREEN1;           // quay về màn hình chính
-            alertStart = 0;                 // reset biến
-            alertActive = false;            // tắt trạng thái alert
+            screenOLED = SCREEN1;       // quay về màn hình chính
+            alertStart = 0;             // reset biến
+            alertActive = false;        // tắt trạng thái alert
             digitalWrite(BUZZER, LOW);  // tắt còi
           }
         }
@@ -1002,15 +1012,13 @@ void TaskAutoWarning(void *pvParameters) {
   delay(20000);
   while (1) {
     if (autoWarning == 1) {
-      checkThreshold(tempValue, humiValue, rainValue, windValue, dustValue);
-
       check_data_and_send_to_blynk(tempValue, humiValue, rainValue, windValue, dustValue);
     }
     delay(10000);
   }
 }
 
-//--------------------- Send send Data value to Blynk every 2 seconds ----------
+//--------------------- Send Data value to Blynk every 2 seconds ----------
 void myTimer() {
   Blynk.virtualWrite(V0, tempValue);    // Nhiệt độ
   Blynk.virtualWrite(V1, humiValue);    // Độ ẩm
@@ -1337,21 +1345,33 @@ void check_data_and_send_to_blynk(int temp, int humi, int rain, int wind, int du
 }
 
 void checkThreshold(int temp, int humi, int rain, int wind, int dust) {
-  bool tempAlert = !(temp >= EtempThreshold1 && temp <= EtempThreshold2);
-  bool humiAlert = !(humi >= EhumiThreshold1 && humi <= EhumiThreshold2);
-  bool rainAlert = !(rain >= ErainThreshold1 && rain <= ErainThreshold2);
-  bool windAlert = !(wind >= EwindThreshold1 && wind <= EwindThreshold2);
-  bool dustAlert = !(dust >= EdustThreshold1 && dust <= EdustThreshold2);
+  tempAlert = !(temp >= EtempThreshold1 && temp <= EtempThreshold2);
+  humiAlert = !(humi >= EhumiThreshold1 && humi <= EhumiThreshold2);
+  rainAlert = !(rain >= ErainThreshold1 && rain <= ErainThreshold2);
+  windAlert = !(wind >= EwindThreshold1 && wind <= EwindThreshold2);
+  dustAlert = !(dust >= EdustThreshold1 && dust <= EdustThreshold2);
 
   alertActive = tempAlert || humiAlert || rainAlert || windAlert || dustAlert;
 
   if (alertActive) {
     alertMessages = "";
-    if (tempAlert) alertMessages += "Temp out of range\n";
-    if (humiAlert) alertMessages += "Humi out of range\n";
-    if (rainAlert) alertMessages += "Rain out of range\n";
-    if (windAlert) alertMessages += "Wind out of range\n";
-    if (dustAlert) alertMessages += "Dust out of range\n";
+
+    // debug
+    // alertMessages += "Temp: " + String(temp) + " | " + String(EtempThreshold1) + "-" + String(EtempThreshold2) + "\n";
+
+    // alertMessages += "Humi: " + String(humi) + " | " + String(EhumiThreshold1) + "-" + String(EhumiThreshold2) + "\n";
+
+    // alertMessages += "Rain: " + String(rain) + " | " + String(ErainThreshold1) + "-" + String(ErainThreshold2) + "\n";
+
+    // alertMessages += "Wind: " + String(wind) + " | " + String(EwindThreshold1) + "-" + String(EwindThreshold2) + "\n";
+
+    // alertMessages += "Dust: " + String(dust) + " | " + String(EdustThreshold1) + "-" + String(EdustThreshold2) + "\n";
+
+    if (tempAlert) alertMessages += "Nhiet do vuot nguong\n";
+    if (humiAlert) alertMessages += "Do am vuot nguong\n";
+    if (rainAlert) alertMessages += "Luong mua vuot nguong\n";
+    if (windAlert) alertMessages += "Toc do gio vuot nguong\n";
+    if (dustAlert) alertMessages += "Chat luong kk vuot nguong\n";
   } else {
   }
 }
